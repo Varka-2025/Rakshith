@@ -4681,26 +4681,42 @@
             return orderSummary;
         }
 
-        // Universal email function for all browsers
+        // Universal email function with mobile device detection
         function sendOrderEmail(customerName, total) {
             const subject = "NEW ORDER - " + customerName + " - Rs." + total.toFixed(2);
+            const mailtoLink = "mailto:varka.clothing@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent("Please paste the order details from your clipboard here.\n\n" + window.currentOrderSummary);
             
-            // Try Gmail first (works in most browsers)
-            const gmailLink = "https://mail.google.com/mail/?view=cm&to=varka.clothing@gmail.com&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent("Please paste the order details from your clipboard here.\n\n" + window.currentOrderSummary);
+            // Detect mobile devices
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                            (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform));
             
-            // Try opening Gmail in new tab
-            const gmailWindow = window.open(gmailLink, '_blank');
-            
-            // Fallback to mailto if Gmail doesn't work
-            if (!gmailWindow) {
-                const mailtoLink = "mailto:varka.clothing@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent("Please paste the order details from your clipboard here.\n\n" + window.currentOrderSummary);
+            if (isMobile) {
+                // On mobile devices, use mailto directly (Gmail app or default mail client)
                 window.location.href = mailtoLink;
+                showNotification('OPENING MAIL APP! Order details are copied to clipboard.', 'info');
+            } else {
+                // On desktop, try Gmail first, then fallback to mailto
+                const gmailLink = "https://mail.google.com/mail/?view=cm&to=varka.clothing@gmail.com&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent("Please paste the order details from your clipboard here.\n\n" + window.currentOrderSummary);
+                
+                try {
+                    const gmailWindow = window.open(gmailLink, '_blank');
+                    
+                    // Check if Gmail actually opened after a short delay
+                    setTimeout(() => {
+                        if (!gmailWindow || gmailWindow.closed) {
+                            // Gmail failed, use mailto as fallback
+                            window.location.href = mailtoLink;
+                            showNotification('OPENING DEFAULT EMAIL CLIENT! Order details are copied to clipboard.', 'info');
+                        } else {
+                            showNotification('GMAIL OPENED! Paste order details if not auto-filled.', 'info');
+                        }
+                    }, 1000);
+                } catch (error) {
+                    // If Gmail fails, use mailto
+                    window.location.href = mailtoLink;
+                    showNotification('OPENING DEFAULT EMAIL CLIENT! Order details are copied to clipboard.', 'info');
+                }
             }
-            
-            // Show success message
-            setTimeout(() => {
-                showNotification('EMAIL CLIENT OPENED! Paste order details if not auto-filled.', 'info');
-            }, 500);
         }
 
         // Universal WhatsApp function for all browsers
@@ -5488,7 +5504,8 @@
         // Final initialization and cleanup
         console.log('VARKA WEBSITE WITH UNIVERSAL CHECKOUT SYSTEM LOADED SUCCESSFULLY! 🎉💝');
         console.log('Features: Cart, Wishlist, Universal Checkout, Enhanced Mobile Support, Keyboard Shortcuts, Offline Support, Multi-Platform Integration');
-        console.log('Checkout: Works consistently across all browsers - Email, WhatsApp & Clipboard options');
+        console.log('Checkout: Works consistently across all browsers - Email (Mobile-Optimized), WhatsApp & Clipboard options');
+        console.log('Mobile Fix: Auto-detects mobile devices and uses native mail apps instead of Gmail web interface');
 
     </script>
 </body>
