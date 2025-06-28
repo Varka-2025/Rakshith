@@ -4496,7 +4496,148 @@
             
             const finalTotal = subtotal + packagingCharges;
             
-            // Create comprehensive order summary - SIMPLIFIED FOR SAFARI COMPATIBILITY
+            // Close modal first
+            const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+            checkoutModal.hide();
+            
+            // Detect Safari
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) || 
+                             /iPhone|iPad|iPod/.test(navigator.userAgent);
+            
+            if (isSafari) {
+                // Safari-specific handling: Show order summary modal instead of trying email
+                showSafariOrderSummary(customerName, customerPhone, customerEmail, customerAddress, 
+                                     backupContact, orderNotes, packagingType, includeExtras, 
+                                     whatsappUpdates, emailUpdates, newsletter, sizeExchangeApproval,
+                                     giftRecipientName, giftOccasion, giftMessage, finalTotal);
+            } else {
+                // Other browsers: Try Gmail compose
+                createAndSendEmail(customerName, customerPhone, customerEmail, customerAddress, 
+                                 backupContact, orderNotes, packagingType, includeExtras, 
+                                 whatsappUpdates, emailUpdates, newsletter, sizeExchangeApproval,
+                                 giftRecipientName, giftOccasion, giftMessage, finalTotal);
+            }
+            
+            // Clear cart after successful order
+            cart = [];
+            saveCart();
+            updateCartDisplay();
+            
+            // Reset form
+            document.getElementById('checkoutForm').reset();
+            document.getElementById('giftCardSection').style.display = 'none';
+        }
+
+        // Safari-optimized order summary modal
+        function showSafariOrderSummary(customerName, customerPhone, customerEmail, customerAddress, 
+                                      backupContact, orderNotes, packagingType, includeExtras, 
+                                      whatsappUpdates, emailUpdates, newsletter, sizeExchangeApproval,
+                                      giftRecipientName, giftOccasion, giftMessage, finalTotal) {
+            
+            // Create comprehensive order summary
+            let orderSummary = createOrderSummary(customerName, customerPhone, customerEmail, customerAddress, 
+                                                backupContact, orderNotes, packagingType, includeExtras, 
+                                                whatsappUpdates, emailUpdates, newsletter, sizeExchangeApproval,
+                                                giftRecipientName, giftOccasion, giftMessage, finalTotal);
+            
+            // Create Safari-friendly modal with order details
+            const safariModal = document.createElement('div');
+            safariModal.className = 'modal fade';
+            safariModal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-check-circle me-2"></i>ORDER SUBMITTED SUCCESSFULLY!
+                            </h5>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle me-2"></i>Your Order Details</h6>
+                                <p class="mb-2"><strong>Order Total:</strong> ₹${finalTotal.toFixed(2)}</p>
+                                <p class="mb-0">Please send your order details using one of the options below:</p>
+                            </div>
+                            
+                            <div class="row g-3 mt-3">
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                                            <h6>EMAIL ORDER</h6>
+                                            <p class="small">Send via email to varka.clothing@gmail.com</p>
+                                            <button class="btn btn-primary btn-sm w-100" onclick="sendOrderEmail('${customerName.replace(/'/g, "\\'")}', ${finalTotal})">
+                                                <i class="fas fa-envelope me-2"></i>SEND EMAIL
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fab fa-whatsapp fa-3x text-success mb-3"></i>
+                                            <h6>WHATSAPP ORDER</h6>
+                                            <p class="small">Send directly via WhatsApp</p>
+                                            <button class="btn btn-success btn-sm w-100" onclick="sendOrderWhatsApp('${customerName.replace(/'/g, "\\'")}', ${finalTotal})">
+                                                <i class="fab fa-whatsapp me-2"></i>SEND WHATSAPP
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h6><i class="fas fa-copy me-2"></i>Order Details (Auto-copied to clipboard):</h6>
+                                <div class="bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.9rem; white-space: pre-line;">${orderSummary}</div>
+                            </div>
+                            
+                            <div class="alert alert-warning mt-3">
+                                <strong><i class="fas fa-clipboard me-2"></i>Order details have been copied to your clipboard!</strong><br>
+                                You can paste them directly into email or WhatsApp.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" onclick="copyOrderDetailsAgain()">
+                                <i class="fas fa-copy me-2"></i>COPY AGAIN
+                            </button>
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                                <i class="fas fa-check me-2"></i>GOT IT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(safariModal);
+            const modal = new bootstrap.Modal(safariModal);
+            modal.show();
+            
+            // Auto-copy to clipboard
+            copyToClipboard(orderSummary);
+            
+            // Store order summary globally for re-copying
+            window.currentOrderSummary = orderSummary;
+            window.currentCustomerName = customerName;
+            window.currentOrderTotal = finalTotal;
+            
+            safariModal.addEventListener('hidden.bs.modal', function () {
+                document.body.removeChild(safariModal);
+            });
+            
+            showNotification('ORDER SUBMITTED! Choose your preferred method to send order details.', 'success');
+        }
+
+        // Create standardized order summary
+        function createOrderSummary(customerName, customerPhone, customerEmail, customerAddress, 
+                                  backupContact, orderNotes, packagingType, includeExtras, 
+                                  whatsappUpdates, emailUpdates, newsletter, sizeExchangeApproval,
+                                  giftRecipientName, giftOccasion, giftMessage, finalTotal) {
+            
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            let packagingCharges = 0;
+            if (packagingType === 'eco') packagingCharges = 25;
+            else if (packagingType === 'gift') packagingCharges = 100;
+            
             let orderSummary = "NEW ORDER FROM VARKA WEBSITE\n";
             orderSummary += "================================\n\n";
             
@@ -4504,12 +4645,8 @@
             orderSummary += "CUSTOMER DETAILS:\n";
             orderSummary += "Name: " + customerName + "\n";
             orderSummary += "Phone: " + customerPhone + "\n";
-            if (backupContact) {
-                orderSummary += "Backup Contact: " + backupContact + "\n";
-            }
-            if (customerEmail) {
-                orderSummary += "Email: " + customerEmail + "\n";
-            }
+            if (backupContact) orderSummary += "Backup Contact: " + backupContact + "\n";
+            if (customerEmail) orderSummary += "Email: " + customerEmail + "\n";
             orderSummary += "Address: " + customerAddress + "\n\n";
             
             // Order Items
@@ -4526,142 +4663,70 @@
             // Financial Summary
             orderSummary += "FINANCIAL SUMMARY:\n";
             orderSummary += "Items Subtotal: Rs." + subtotal.toFixed(2) + "\n";
-            
             if (packagingCharges > 0) {
                 const packagingText = packagingType === 'eco' ? 'Eco-Friendly Packaging' : 'Premium Gift Wrapping';
                 orderSummary += packagingText + ": Rs." + packagingCharges + "\n";
             }
-            
             orderSummary += "Taxes: INCLUDED IN PRICES\n";
             orderSummary += "Shipping: TO BE CALCULATED\n";
             orderSummary += "TOTAL AMOUNT: Rs." + finalTotal.toFixed(2) + "\n\n";
             
-            // Packaging Preferences
-            const packagingTexts = {
-                'standard': 'Standard Packaging',
-                'eco': 'Eco-Friendly Packaging',
-                'gift': 'Premium Gift Wrapping'
-            };
-            orderSummary += "Packaging: " + packagingTexts[packagingType] + "\n";
-            
-            const extrasTexts = {
-                'none': 'No Extras',
-                'care': 'Include Care Instructions',
-                'brand': 'Include Brand Stickers',
-                'both': 'Care Instructions + Brand Stickers'
-            };
-            orderSummary += "Additional Items: " + extrasTexts[includeExtras] + "\n\n";
-            
-            // Gift Card Information
+            // Additional details
             if (giftRecipientName || giftMessage) {
-                orderSummary += "GIFT CARD DETAILS:\n";
-                if (giftRecipientName) {
-                    orderSummary += "Gift Recipient: " + giftRecipientName + "\n";
-                }
-                if (giftOccasion) {
-                    orderSummary += "Occasion: " + giftOccasion + "\n";
-                }
-                if (giftMessage) {
-                    orderSummary += "Personal Message: " + giftMessage + "\n";
-                }
-                orderSummary += "\n";
+                orderSummary += "GIFT DETAILS:\n";
+                if (giftRecipientName) orderSummary += "Recipient: " + giftRecipientName + "\n";
+                if (giftOccasion) orderSummary += "Occasion: " + giftOccasion + "\n";
+                if (giftMessage) orderSummary += "Message: " + giftMessage + "\n\n";
             }
             
-            // Communication Preferences
+            if (orderNotes) {
+                orderSummary += "SPECIAL INSTRUCTIONS:\n" + orderNotes + "\n\n";
+            }
+            
             orderSummary += "COMMUNICATION PREFERENCES:\n";
             orderSummary += "WhatsApp Updates: " + (whatsappUpdates ? 'YES' : 'NO') + "\n";
-            orderSummary += "Email Updates: " + (emailUpdates ? 'YES' : 'NO') + "\n";
-            orderSummary += "Newsletter: " + (newsletter ? 'YES' : 'NO') + "\n";
-            orderSummary += "Size Exchange Pre-approved: " + (sizeExchangeApproval ? 'YES' : 'NO') + "\n\n";
+            orderSummary += "Email Updates: " + (emailUpdates ? 'YES' : 'NO') + "\n\n";
             
-            // Special Instructions
-            if (orderNotes) {
-                orderSummary += "SPECIAL INSTRUCTIONS:\n";
-                orderSummary += orderNotes + "\n\n";
-            }
+            orderSummary += "Thank you for choosing VARKA!\n";
+            orderSummary += "Contact: varka.clothing@gmail.com | +91 9945268777";
             
-            // Footer
-            orderSummary += "ACTION REQUIRED:\n";
-            orderSummary += "1. Confirm order and stock availability\n";
-            orderSummary += "2. Calculate and share shipping charges\n";
-            orderSummary += "3. Send payment instructions to customer\n";
-            orderSummary += "4. Provide estimated delivery timeline\n\n";
-            orderSummary += "Thank you for choosing VARKA!\n\n";
-            orderSummary += "Contact:\n";
-            orderSummary += "Email: varka.clothing@gmail.com\n";
-            orderSummary += "WhatsApp: +91 9945268777\n";
-            orderSummary += "Website: VARKA Premium Clothing";
-            
-            // Create subject and try multiple methods for better Safari compatibility
-            const subject = "NEW ORDER - " + customerName + " - Rs." + finalTotal.toFixed(2);
-            
-            // Method 1: Try Gmail compose (works best on Chrome/Firefox)
-            const gmailLink = "https://mail.google.com/mail/?view=cm&to=varka.clothing@gmail.com&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(orderSummary);
-            
-            // Method 2: Fallback mailto link (works better on Safari)
-            const mailtoLink = "mailto:varka.clothing@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(orderSummary);
-            
-            // Detect Safari and use appropriate method
-            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-            
-            try {
-                if (isSafari) {
-                    // For Safari, try Gmail first, then fallback to mailto
-                    const gmailWindow = window.open(gmailLink, '_blank');
-                    
-                    // Check if Gmail opened successfully
-                    setTimeout(() => {
-                        if (!gmailWindow || gmailWindow.closed) {
-                            // If Gmail failed, try mailto
-                            window.location.href = mailtoLink;
-                        }
-                    }, 1000);
-                } else {
-                    // For other browsers, use Gmail directly
-                    window.open(gmailLink, '_blank');
-                }
-                
-                // Show success message
-                showNotification('ORDER SUBMITTED! EMAIL CLIENT OPENED WITH ORDER DETAILS.', 'success');
-                
-            } catch (error) {
-                console.error('Email opening failed:', error);
-                
-                // Final fallback - copy to clipboard and show manual instructions
-                copyOrderToClipboard(orderSummary, subject);
-                showManualEmailInstructions(customerName, finalTotal);
-            }
-            
-            // Close modal and clear cart
-            const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
-            checkoutModal.hide();
-            
-            // Clear cart after successful order
-            cart = [];
-            saveCart();
-            updateCartDisplay();
-            
-            // Reset form
-            document.getElementById('checkoutForm').reset();
-            document.getElementById('giftCardSection').style.display = 'none';
+            return orderSummary;
         }
 
-        // Helper function to copy order details to clipboard
-        function copyOrderToClipboard(orderSummary, subject) {
-            const fullOrderText = "TO: varka.clothing@gmail.com\nSUBJECT: " + subject + "\n\n" + orderSummary;
+        // Email function for Safari
+        function sendOrderEmail(customerName, total) {
+            const subject = "NEW ORDER - " + customerName + " - Rs." + total.toFixed(2);
+            const mailtoLink = "mailto:varka.clothing@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent("Please paste the order details from your clipboard here.\n\n" + window.currentOrderSummary);
             
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(fullOrderText).then(() => {
-                    showNotification('ORDER DETAILS COPIED TO CLIPBOARD!', 'info');
-                }).catch(() => {
-                    fallbackCopyToClipboard(fullOrderText);
+            // Try mailto first
+            window.location.href = mailtoLink;
+            
+            // Show success message
+            setTimeout(() => {
+                showNotification('EMAIL CLIENT OPENED! Paste order details if not auto-filled.', 'info');
+            }, 500);
+        }
+
+        // WhatsApp function for Safari
+        function sendOrderWhatsApp(customerName, total) {
+            const message = "NEW ORDER FROM VARKA WEBSITE\n\n" + window.currentOrderSummary;
+            const whatsappLink = "https://wa.me/919945268777?text=" + encodeURIComponent(message);
+            
+            window.open(whatsappLink, '_blank');
+            showNotification('WHATSAPP OPENED WITH ORDER DETAILS!', 'success');
+        }
+
+        // Enhanced clipboard copy function
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).catch(() => {
+                    fallbackCopyToClipboard(text);
                 });
             } else {
-                fallbackCopyToClipboard(fullOrderText);
+                fallbackCopyToClipboard(text);
             }
         }
 
-        // Fallback clipboard copy for older browsers
         function fallbackCopyToClipboard(text) {
             const textArea = document.createElement('textarea');
             textArea.value = text;
@@ -4674,63 +4739,44 @@
             
             try {
                 document.execCommand('copy');
-                showNotification('ORDER DETAILS COPIED TO CLIPBOARD!', 'info');
             } catch (err) {
                 console.error('Could not copy text: ', err);
-                showNotification('PLEASE COPY ORDER DETAILS MANUALLY', 'warning');
             }
             
             document.body.removeChild(textArea);
         }
 
-        // Show manual email instructions if automatic methods fail
-        function showManualEmailInstructions(customerName, total) {
-            const instructionModal = document.createElement('div');
-            instructionModal.className = 'modal fade';
-            instructionModal.innerHTML = `
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">
-                                <i class="fas fa-envelope me-2"></i>SEND ORDER MANUALLY
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="alert alert-info">
-                                <h6><i class="fas fa-info-circle me-2"></i>ORDER DETAILS COPIED TO CLIPBOARD</h6>
-                                <p class="mb-0">Please follow these steps to send your order:</p>
-                            </div>
-                            <ol class="mt-3">
-                                <li><strong>Open your email client</strong> (Gmail, Mail, etc.)</li>
-                                <li><strong>Create a new email to:</strong> <code>varka.clothing@gmail.com</code></li>
-                                <li><strong>Subject:</strong> NEW ORDER - ${customerName} - Rs.${total.toFixed(2)}</li>
-                                <li><strong>Paste the order details</strong> from your clipboard into the email body</li>
-                                <li><strong>Send the email</strong></li>
-                            </ol>
-                            <div class="alert alert-success mt-3">
-                                <strong>Alternative:</strong> You can also WhatsApp us at <strong>+91 9945268777</strong> with your order details.
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <a href="mailto:varka.clothing@gmail.com" class="btn btn-primary">
-                                <i class="fas fa-envelope me-2"></i>OPEN EMAIL CLIENT
-                            </a>
-                            <a href="https://wa.me/919945268777" target="_blank" class="btn btn-success">
-                                <i class="fab fa-whatsapp me-2"></i>WHATSAPP US
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            `;
+        function copyOrderDetailsAgain() {
+            if (window.currentOrderSummary) {
+                copyToClipboard(window.currentOrderSummary);
+                showNotification('ORDER DETAILS COPIED TO CLIPBOARD!', 'success');
+            }
+        }
+
+        // Gmail function for other browsers
+        function createAndSendEmail(customerName, customerPhone, customerEmail, customerAddress, 
+                                  backupContact, orderNotes, packagingType, includeExtras, 
+                                  whatsappUpdates, emailUpdates, newsletter, sizeExchangeApproval,
+                                  giftRecipientName, giftOccasion, giftMessage, finalTotal) {
             
-            document.body.appendChild(instructionModal);
-            const modal = new bootstrap.Modal(instructionModal);
-            modal.show();
+            const orderSummary = createOrderSummary(customerName, customerPhone, customerEmail, customerAddress, 
+                                                  backupContact, orderNotes, packagingType, includeExtras, 
+                                                  whatsappUpdates, emailUpdates, newsletter, sizeExchangeApproval,
+                                                  giftRecipientName, giftOccasion, giftMessage, finalTotal);
             
-            instructionModal.addEventListener('hidden.bs.modal', function () {
-                document.body.removeChild(instructionModal);
-            });
+            const subject = "NEW ORDER - " + customerName + " - Rs." + finalTotal.toFixed(2);
+            const gmailLink = "https://mail.google.com/mail/?view=cm&to=varka.clothing@gmail.com&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(orderSummary);
+            
+            try {
+                window.open(gmailLink, '_blank');
+                showNotification('ORDER SUBMITTED! GMAIL OPENED WITH ORDER DETAILS.', 'success');
+            } catch (error) {
+                // Fallback to Safari method if Gmail fails
+                showSafariOrderSummary(customerName, customerPhone, customerEmail, customerAddress, 
+                                     backupContact, orderNotes, packagingType, includeExtras, 
+                                     whatsappUpdates, emailUpdates, newsletter, sizeExchangeApproval,
+                                     giftRecipientName, giftOccasion, giftMessage, finalTotal);
+            }
         }
 
         function printOrder() {
