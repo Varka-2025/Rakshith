@@ -4496,61 +4496,53 @@
             
             const finalTotal = subtotal + packagingCharges;
             
-            // Create comprehensive order summary
-            let orderSummary = "🛍️ NEW ORDER FROM VARKA WEBSITE\n";
-            orderSummary += "=" .repeat(60) + "\n\n";
+            // Create comprehensive order summary - SIMPLIFIED FOR SAFARI COMPATIBILITY
+            let orderSummary = "NEW ORDER FROM VARKA WEBSITE\n";
+            orderSummary += "================================\n\n";
             
             // Customer Details
-            orderSummary += "👤 CUSTOMER DETAILS:\n";
-            orderSummary += "-".repeat(20) + "\n";
-            orderSummary += `Name: ${customerName}\n`;
-            orderSummary += `Phone: ${customerPhone}\n`;
+            orderSummary += "CUSTOMER DETAILS:\n";
+            orderSummary += "Name: " + customerName + "\n";
+            orderSummary += "Phone: " + customerPhone + "\n";
             if (backupContact) {
-                orderSummary += `Backup Contact: ${backupContact}\n`;
+                orderSummary += "Backup Contact: " + backupContact + "\n";
             }
             if (customerEmail) {
-                orderSummary += `Email: ${customerEmail}\n`;
+                orderSummary += "Email: " + customerEmail + "\n";
             }
-            orderSummary += `Address: ${customerAddress}\n\n`;
+            orderSummary += "Address: " + customerAddress + "\n\n";
             
-            // Order Items - Enhanced Visibility
-            orderSummary += "🛒 DETAILED ORDER BREAKDOWN:\n";
-            orderSummary += "-".repeat(30) + "\n";
-            
+            // Order Items
+            orderSummary += "ORDER DETAILS:\n";
             cart.forEach((item, index) => {
                 const itemTotal = item.price * item.quantity;
-                orderSummary += `${index + 1}. PRODUCT: ${item.name}\n`;
-                orderSummary += `   SIZE: ${item.size} | FIT: ${item.fit}\n`;
-                orderSummary += `   QUANTITY: ${item.quantity}\n`;
-                orderSummary += `   UNIT PRICE: ₹${item.price}\n`;
-                orderSummary += `   ITEM TOTAL: ₹${itemTotal}\n`;
-                orderSummary += "   " + "-".repeat(25) + "\n";
+                orderSummary += (index + 1) + ". " + item.name + "\n";
+                orderSummary += "   Size: " + item.size + " | Fit: " + item.fit + "\n";
+                orderSummary += "   Quantity: " + item.quantity + "\n";
+                orderSummary += "   Unit Price: Rs." + item.price + "\n";
+                orderSummary += "   Item Total: Rs." + itemTotal + "\n\n";
             });
             
-            // Financial Summary - Enhanced Visibility
-            orderSummary += "\n💰 FINANCIAL SUMMARY:\n";
-            orderSummary += "-".repeat(22) + "\n";
-            orderSummary += `ITEMS SUBTOTAL: ₹${subtotal.toFixed(2)}\n`;
+            // Financial Summary
+            orderSummary += "FINANCIAL SUMMARY:\n";
+            orderSummary += "Items Subtotal: Rs." + subtotal.toFixed(2) + "\n";
             
             if (packagingCharges > 0) {
                 const packagingText = packagingType === 'eco' ? 'Eco-Friendly Packaging' : 'Premium Gift Wrapping';
-                orderSummary += `${packagingText.toUpperCase()}: ₹${packagingCharges}\n`;
+                orderSummary += packagingText + ": Rs." + packagingCharges + "\n";
             }
             
-            orderSummary += `TAXES: INCLUDED IN PRICES\n`;
-            orderSummary += `SHIPPING: TO BE CALCULATED\n`;
-            orderSummary += `\n*** TOTAL AMOUNT: ₹${finalTotal.toFixed(2)} ***\n\n`;
+            orderSummary += "Taxes: INCLUDED IN PRICES\n";
+            orderSummary += "Shipping: TO BE CALCULATED\n";
+            orderSummary += "TOTAL AMOUNT: Rs." + finalTotal.toFixed(2) + "\n\n";
             
             // Packaging Preferences
-            orderSummary += "📦 PACKAGING DETAILS:\n";
-            orderSummary += "-".repeat(21) + "\n";
-            
             const packagingTexts = {
                 'standard': 'Standard Packaging',
-                'eco': 'Eco-Friendly Packaging (+₹25)',
-                'gift': 'Premium Gift Wrapping (+₹100)'
+                'eco': 'Eco-Friendly Packaging',
+                'gift': 'Premium Gift Wrapping'
             };
-            orderSummary += `Packaging Type: ${packagingTexts[packagingType]}\n`;
+            orderSummary += "Packaging: " + packagingTexts[packagingType] + "\n";
             
             const extrasTexts = {
                 'none': 'No Extras',
@@ -4558,60 +4550,89 @@
                 'brand': 'Include Brand Stickers',
                 'both': 'Care Instructions + Brand Stickers'
             };
-            orderSummary += `Additional Items: ${extrasTexts[includeExtras]}\n\n`;
+            orderSummary += "Additional Items: " + extrasTexts[includeExtras] + "\n\n";
             
             // Gift Card Information
             if (giftRecipientName || giftMessage) {
-                orderSummary += "🎁 GIFT CARD DETAILS:\n";
-                orderSummary += "-".repeat(20) + "\n";
+                orderSummary += "GIFT CARD DETAILS:\n";
                 if (giftRecipientName) {
-                    orderSummary += `Gift Recipient: ${giftRecipientName}\n`;
+                    orderSummary += "Gift Recipient: " + giftRecipientName + "\n";
                 }
                 if (giftOccasion) {
-                    orderSummary += `Occasion: ${giftOccasion}\n`;
+                    orderSummary += "Occasion: " + giftOccasion + "\n";
                 }
                 if (giftMessage) {
-                    orderSummary += `Personal Message: ${giftMessage}\n`;
+                    orderSummary += "Personal Message: " + giftMessage + "\n";
                 }
                 orderSummary += "\n";
             }
             
             // Communication Preferences
-            orderSummary += "📱 COMMUNICATION PREFERENCES:\n";
-            orderSummary += "-".repeat(28) + "\n";
-            orderSummary += `WhatsApp Updates: ${whatsappUpdates ? 'YES' : 'NO'}\n`;
-            orderSummary += `Email Updates: ${emailUpdates ? 'YES' : 'NO'}\n`;
-            orderSummary += `Newsletter Subscription: ${newsletter ? 'YES' : 'NO'}\n`;
-            orderSummary += `Size Exchange Pre-approved: ${sizeExchangeApproval ? 'YES' : 'NO'}\n\n`;
+            orderSummary += "COMMUNICATION PREFERENCES:\n";
+            orderSummary += "WhatsApp Updates: " + (whatsappUpdates ? 'YES' : 'NO') + "\n";
+            orderSummary += "Email Updates: " + (emailUpdates ? 'YES' : 'NO') + "\n";
+            orderSummary += "Newsletter: " + (newsletter ? 'YES' : 'NO') + "\n";
+            orderSummary += "Size Exchange Pre-approved: " + (sizeExchangeApproval ? 'YES' : 'NO') + "\n\n";
             
             // Special Instructions
             if (orderNotes) {
-                orderSummary += "📝 SPECIAL INSTRUCTIONS:\n";
-                orderSummary += "-".repeat(22) + "\n";
-                orderSummary += `${orderNotes}\n\n`;
+                orderSummary += "SPECIAL INSTRUCTIONS:\n";
+                orderSummary += orderNotes + "\n\n";
             }
             
             // Footer
-            orderSummary += "=" .repeat(60) + "\n";
-            orderSummary += "🎯 ACTION REQUIRED:\n";
+            orderSummary += "ACTION REQUIRED:\n";
             orderSummary += "1. Confirm order and stock availability\n";
             orderSummary += "2. Calculate and share shipping charges\n";
             orderSummary += "3. Send payment instructions to customer\n";
-            orderSummary += "4. Provide estimated delivery timeline\n";
-            orderSummary += "5. Update customer via preferred communication method\n\n";
-            orderSummary += "Thank you for choosing VARKA! 🙏\n\n";
-            orderSummary += "📧 Email: varka.clothing@gmail.com\n";
-            orderSummary += "📱 WhatsApp: +91 9945268777\n";
-            orderSummary += "🌐 Website: VARKA Premium Clothing";
+            orderSummary += "4. Provide estimated delivery timeline\n\n";
+            orderSummary += "Thank you for choosing VARKA!\n\n";
+            orderSummary += "Contact:\n";
+            orderSummary += "Email: varka.clothing@gmail.com\n";
+            orderSummary += "WhatsApp: +91 9945268777\n";
+            orderSummary += "Website: VARKA Premium Clothing";
             
-            // Create Gmail compose link with comprehensive order details - EMAIL SENT TO varka.clothing@gmail.com
-            const subject = `🛍️ NEW ORDER - ${customerName} - ₹${finalTotal.toFixed(2)}`;
-            const gmailLink = `https://mail.google.com/mail/?view=cm&to=varka.clothing@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(orderSummary)}`;
+            // Create subject and try multiple methods for better Safari compatibility
+            const subject = "NEW ORDER - " + customerName + " - Rs." + finalTotal.toFixed(2);
             
-            // Open Gmail with order details
-            window.open(gmailLink, '_blank');
+            // Method 1: Try Gmail compose (works best on Chrome/Firefox)
+            const gmailLink = "https://mail.google.com/mail/?view=cm&to=varka.clothing@gmail.com&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(orderSummary);
             
-            // Close modal and show success message
+            // Method 2: Fallback mailto link (works better on Safari)
+            const mailtoLink = "mailto:varka.clothing@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(orderSummary);
+            
+            // Detect Safari and use appropriate method
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            
+            try {
+                if (isSafari) {
+                    // For Safari, try Gmail first, then fallback to mailto
+                    const gmailWindow = window.open(gmailLink, '_blank');
+                    
+                    // Check if Gmail opened successfully
+                    setTimeout(() => {
+                        if (!gmailWindow || gmailWindow.closed) {
+                            // If Gmail failed, try mailto
+                            window.location.href = mailtoLink;
+                        }
+                    }, 1000);
+                } else {
+                    // For other browsers, use Gmail directly
+                    window.open(gmailLink, '_blank');
+                }
+                
+                // Show success message
+                showNotification('ORDER SUBMITTED! EMAIL CLIENT OPENED WITH ORDER DETAILS.', 'success');
+                
+            } catch (error) {
+                console.error('Email opening failed:', error);
+                
+                // Final fallback - copy to clipboard and show manual instructions
+                copyOrderToClipboard(orderSummary, subject);
+                showManualEmailInstructions(customerName, finalTotal);
+            }
+            
+            // Close modal and clear cart
             const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
             checkoutModal.hide();
             
@@ -4620,11 +4641,96 @@
             saveCart();
             updateCartDisplay();
             
-            showNotification('ORDER SUBMITTED SUCCESSFULLY! GMAIL OPENED WITH ORDER DETAILS.', 'success');
-            
             // Reset form
             document.getElementById('checkoutForm').reset();
             document.getElementById('giftCardSection').style.display = 'none';
+        }
+
+        // Helper function to copy order details to clipboard
+        function copyOrderToClipboard(orderSummary, subject) {
+            const fullOrderText = "TO: varka.clothing@gmail.com\nSUBJECT: " + subject + "\n\n" + orderSummary;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(fullOrderText).then(() => {
+                    showNotification('ORDER DETAILS COPIED TO CLIPBOARD!', 'info');
+                }).catch(() => {
+                    fallbackCopyToClipboard(fullOrderText);
+                });
+            } else {
+                fallbackCopyToClipboard(fullOrderText);
+            }
+        }
+
+        // Fallback clipboard copy for older browsers
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showNotification('ORDER DETAILS COPIED TO CLIPBOARD!', 'info');
+            } catch (err) {
+                console.error('Could not copy text: ', err);
+                showNotification('PLEASE COPY ORDER DETAILS MANUALLY', 'warning');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // Show manual email instructions if automatic methods fail
+        function showManualEmailInstructions(customerName, total) {
+            const instructionModal = document.createElement('div');
+            instructionModal.className = 'modal fade';
+            instructionModal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-envelope me-2"></i>SEND ORDER MANUALLY
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle me-2"></i>ORDER DETAILS COPIED TO CLIPBOARD</h6>
+                                <p class="mb-0">Please follow these steps to send your order:</p>
+                            </div>
+                            <ol class="mt-3">
+                                <li><strong>Open your email client</strong> (Gmail, Mail, etc.)</li>
+                                <li><strong>Create a new email to:</strong> <code>varka.clothing@gmail.com</code></li>
+                                <li><strong>Subject:</strong> NEW ORDER - ${customerName} - Rs.${total.toFixed(2)}</li>
+                                <li><strong>Paste the order details</strong> from your clipboard into the email body</li>
+                                <li><strong>Send the email</strong></li>
+                            </ol>
+                            <div class="alert alert-success mt-3">
+                                <strong>Alternative:</strong> You can also WhatsApp us at <strong>+91 9945268777</strong> with your order details.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <a href="mailto:varka.clothing@gmail.com" class="btn btn-primary">
+                                <i class="fas fa-envelope me-2"></i>OPEN EMAIL CLIENT
+                            </a>
+                            <a href="https://wa.me/919945268777" target="_blank" class="btn btn-success">
+                                <i class="fab fa-whatsapp me-2"></i>WHATSAPP US
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(instructionModal);
+            const modal = new bootstrap.Modal(instructionModal);
+            modal.show();
+            
+            instructionModal.addEventListener('hidden.bs.modal', function () {
+                document.body.removeChild(instructionModal);
+            });
         }
 
         function printOrder() {
